@@ -18,7 +18,7 @@ public class AppConfig {
     private AppConfig() {
         Properties props = new Properties();
         try {
-            // Carrega o arquivo do classpath (src/main/resources/config.properties)
+            // Loads file from classpath (src/main/resources/config.properties)
             props.load(getClass().getClassLoader().getResourceAsStream("config.properties"));
             this.databaseUrl = props.getProperty("database.url");
             this.encryptionKey = props.getProperty("encryption.key");
@@ -32,7 +32,9 @@ public class AppConfig {
         }
     }
 
-
+    /**
+     * Validation of configurations values.
+     */
     private void validate() {
         if (passwordLength < 11) {
             throw new IllegalArgumentException("passwordLength deve ser de pelo menos 11");
