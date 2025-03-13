@@ -4,8 +4,9 @@ import com.es2.project.AppConfig;
 // click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
 public class Main {
     public static void main(String[] args) {
-     AppConfig a =   AppConfig.getInstance("jdbc:mysql://localhost:3306/mydb", "mykey", 8);
-     System.out.println(a.getDatabaseUrl());
-     System.out.println(a.getEncryptionKey());
+        AppConfig config = AppConfig.getInstance();
+        System.out.println("Database URL: " + config.getDatabaseUrl());
+        System.out.println("Encryption Key: " + config.getEncryptionKey());
+        System.out.println("Password Length: " + config.getPasswordLength());
     }
 }

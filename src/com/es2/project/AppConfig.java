@@ -1,37 +1,58 @@
 package com.es2.project;
+
+import java.io.IOException;
+import java.util.Properties;
+
 /**
  * Singleton class to store global application configurations.
  */
 public class AppConfig {
     private static AppConfig instance;
-    private String databaseUrl;
-    private String encryptionKey;
-    private int passwordLength;
+    private final String databaseUrl;
+    private final String encryptionKey;
+    private final int passwordLength;
 
     /**
      * Private constructor to initialize configurations.
-     *
-     * @param databaseUrl   Database URL.
-     * @param encryptionKey Encryption key.
-     * @param passwordLength Default password length.
      */
-    private AppConfig(String databaseUrl, String encryptionKey, int passwordLength) {
-        this.databaseUrl = databaseUrl;
-        this.encryptionKey = encryptionKey;
-        this.passwordLength = passwordLength;
+    private AppConfig() {
+        Properties props = new Properties();
+        try {
+            // Carrega o arquivo do classpath (src/main/resources/config.properties)
+            props.load(getClass().getClassLoader().getResourceAsStream("config.properties"));
+            this.databaseUrl = props.getProperty("database.url");
+            this.encryptionKey = props.getProperty("encryption.key");
+            this.passwordLength = Integer.parseInt(props.getProperty("password.length"));
+
+            validate();
+        } catch (IOException e) {
+            throw new RuntimeException("Arquivo config.properties não encontrado!", e);
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("Formato inválido para password.length", e);
+        }
+    }
+
+
+    private void validate() {
+        if (passwordLength < 11) {
+            throw new IllegalArgumentException("passwordLength deve ser de pelo menos 11");
+        }
+        if (encryptionKey == null || encryptionKey.isBlank()) {
+            throw new IllegalArgumentException("encryptionKey não pode estar vazia");
+        }
     }
 
     /**
      * Returns the single instance of the configuration.
-     *
-     * @param databaseUrl   Database URL.
-     * @param encryptionKey Encryption key.
-     * @param passwordLength Default password length.
      * @return Single instance of AppConfig.
      */
-    public static synchronized AppConfig getInstance(String databaseUrl, String encryptionKey, int passwordLength) {
+    public static AppConfig getInstance() {
         if (instance == null) {
-            instance = new AppConfig(databaseUrl, encryptionKey, passwordLength);
+            synchronized (AppConfig.class) {
+                if (instance == null) {
+                    instance = new AppConfig();
+                }
+            }
         }
         return instance;
     }
@@ -42,16 +63,7 @@ public class AppConfig {
      * @return Database URL.
      */
     public String getDatabaseUrl() {
-        return this.databaseUrl;
-    }
-
-    /**
-     * Sets the database URL.
-     *
-     * @param databaseUrl New database URL.
-     */
-    public void setDatabaseUrl(String databaseUrl) {
-        this.databaseUrl = databaseUrl;
+        return databaseUrl;
     }
 
     /**
@@ -60,16 +72,7 @@ public class AppConfig {
      * @return Encryption key.
      */
     public String getEncryptionKey() {
-        return this.encryptionKey;
-    }
-
-    /**
-     * Sets the encryption key.
-     *
-     * @param encryptionKey New encryption key.
-     */
-    public void setEncryptionKey(String encryptionKey) {
-        this.encryptionKey = encryptionKey;
+        return encryptionKey;
     }
 
     /**
@@ -78,15 +81,6 @@ public class AppConfig {
      * @return Default password length.
      */
     public int getPasswordLength() {
-        return this.passwordLength;
-    }
-
-    /**
-     * Sets the default password length.
-     *
-     * @param passwordLength New default password length.
-     */
-    public void setPasswordLength(int passwordLength) {
-        this.passwordLength = passwordLength;
+        return passwordLength;
     }
 }
