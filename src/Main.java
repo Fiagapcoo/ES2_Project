@@ -9,6 +9,9 @@ public class Main {
         System.out.println("Encryption Key: " + config.getEncryptionKey());
         System.out.println("Password Length: " + config.getPasswordLength());
 
+        System.out.println("Alphanumeric Password: " + config.generatePassword("ALPHANUMERIC"));
+        System.out.println("Special Character Password: " + config.generatePassword("SPECIAL"));
+
         /* Updating configurations
         AppConfigManager.setDatabaseUrl("jdbc:mysql://localhost:3306/newdb");
         AppConfigManager.setEncryptionKey("newsecretkey");

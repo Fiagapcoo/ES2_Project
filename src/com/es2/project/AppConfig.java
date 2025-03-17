@@ -47,6 +47,7 @@ public class AppConfig {
 
     /**
      * Returns the single instance of the configuration.
+     *
      * @return Single instance of AppConfig.
      */
     public static synchronized AppConfig getInstance() {
@@ -83,5 +84,14 @@ public class AppConfig {
         return passwordLength;
     }
 
-
+    /**
+     * Generates a password using the specified type.
+     *
+     * @param type The type of password generator ("ALPHANUMERIC" or "SPECIAL").
+     * @return A generated password.
+     */
+    public String generatePassword(String type) {
+        PasswordGenerator generator = PasswordGeneratorFactory.createGenerator(type);
+        return generator.generate(passwordLength);
+    }
 }
