@@ -17,16 +17,17 @@ public class AppConfig {
      */
     private AppConfig() {
         Properties props = new Properties();
+        String configFile = null;
         try {
-            // Loads file from classpath (src/main/resources/config.properties)
-            props.load(getClass().getClassLoader().getResourceAsStream("config.properties"));
+            configFile = System.getProperty("config.file", "config.properties");
+            props.load(getClass().getClassLoader().getResourceAsStream(configFile));
             this.databaseUrl = props.getProperty("database.url");
             this.encryptionKey = props.getProperty("encryption.key");
             this.passwordLength = Integer.parseInt(props.getProperty("password.length"));
 
             validate();
         } catch (IOException e) {
-            throw new RuntimeException("Arquivo config.properties não encontrado!", e);
+            throw new RuntimeException("Arquivo " + configFile + " não encontrado!", e);
         } catch (NumberFormatException e) {
             throw new IllegalArgumentException("Formato inválido para password.length", e);
         }
@@ -48,13 +49,9 @@ public class AppConfig {
      * Returns the single instance of the configuration.
      * @return Single instance of AppConfig.
      */
-    public static AppConfig getInstance() {
+    public static synchronized AppConfig getInstance() {
         if (instance == null) {
-            synchronized (AppConfig.class) {
-                if (instance == null) {
-                    instance = new AppConfig();
-                }
-            }
+            instance = new AppConfig();
         }
         return instance;
     }
@@ -85,4 +82,6 @@ public class AppConfig {
     public int getPasswordLength() {
         return passwordLength;
     }
+
+
 }
