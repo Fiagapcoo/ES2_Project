@@ -7,6 +7,9 @@ import java.util.Properties;
  * Singleton class to store global application configurations.
  */
 public class AppConfig {
+    public static final String ALPHANUMERIC = "ALPHANUMERIC";
+    public static final String SPECIAL = "SPECIAL";
+
     private static AppConfig instance;
     private final String databaseUrl;
     private final String encryptionKey;

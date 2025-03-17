@@ -73,4 +73,29 @@ public class AppConfigTest {
             System.clearProperty("config.file");
         }
     }
+
+    /**
+     * Tests password generation for passwords with special characters.
+     */
+    @Test
+    void testGenerateSpecialPassword() {
+        AppConfig config = AppConfig.getInstance();
+        String password = config.generatePassword(AppConfig.SPECIAL);
+        assertNotNull(password);
+        assertEquals(11, password.length());  // Considerando o valor mínimo
+        assertTrue(password.matches("[a-zA-Z0-9!@#$%^&*()]+"), "Password should contain special characters");
+        System.out.println("✅ testGenerateSpecialPassword passed!");
+    }
+
+    /**
+     * Tests password generation with an invalid type.
+     */
+    @Test
+    void testGenerateInvalidPasswordType() {
+        AppConfig config = AppConfig.getInstance();
+        assertThrows(IllegalArgumentException.class, () -> {
+            config.generatePassword("INVALID");
+        }, "Password generation should fail with an invalid type");
+        System.out.println("✅ testGenerateInvalidPasswordType passed!");
+    }
 }
