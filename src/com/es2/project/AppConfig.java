@@ -11,9 +11,9 @@ public class AppConfig {
     public static final String SPECIAL = "SPECIAL";
 
     private static AppConfig instance;
-    private final String databaseUrl;
-    private final String encryptionKey;
-    private final int passwordLength;
+    private String databaseUrl;
+    private String encryptionKey;
+    private int passwordLength;
 
     /**
      * Private constructor to initialize configurations.
@@ -88,6 +88,41 @@ public class AppConfig {
     }
 
     /**
+     * Sets the database URL.
+     *
+     * @param newUrl The new database URL.
+     */
+    public synchronized void setDatabaseUrl(String newUrl) {
+        this.databaseUrl = newUrl;
+    }
+
+    /**
+     * Sets the encryption key.
+     *
+     * @param newKey The new encryption key.
+     * @throws IllegalArgumentException if the key is empty or null.
+     */
+    public synchronized void setEncryptionKey(String newKey) {
+        if (newKey == null || newKey.isBlank()) {
+            throw new IllegalArgumentException("Chave não pode ser vazia!");
+        }
+        this.encryptionKey = newKey;
+    }
+
+    /**
+     * Sets the password length.
+     *
+     * @param newLength The new password length.
+     * @throws IllegalArgumentException if the length is less than 11.
+     */
+    public synchronized void setPasswordLength(int newLength) {
+        if (newLength < 11) {
+            throw new IllegalArgumentException("Tamanho mínimo: 11!");
+        }
+        this.passwordLength = newLength;
+    }
+
+    /**
      * Generates a password using the specified type.
      *
      * @param type The type of password generator ("ALPHANUMERIC" or "SPECIAL").
@@ -97,4 +132,5 @@ public class AppConfig {
         PasswordGenerator generator = PasswordGeneratorFactory.createGenerator(type);
         return generator.generate(passwordLength);
     }
+
 }

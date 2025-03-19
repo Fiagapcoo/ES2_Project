@@ -1,5 +1,4 @@
 import com.es2.project.AppConfig;
-import com.es2.project.AppConfigManager;
 
 public class Main {
     public static void main(String[] args) {
@@ -11,18 +10,5 @@ public class Main {
 
         System.out.println("Alphanumeric Password: " + config.generatePassword("ALPHANUMERIC"));
         System.out.println("Special Character Password: " + config.generatePassword("SPECIAL"));
-
-        /* Updating configurations
-        AppConfigManager.setDatabaseUrl("jdbc:mysql://localhost:3306/newdb");
-        AppConfigManager.setEncryptionKey("newsecretkey");
-        AppConfigManager.setPasswordLength(12);
-        */
-
-        /* Uncomment the above lines to update the configurations
-        System.out.println("\nAfter Update:");
-        System.out.println("Database URL: " + config.getDatabaseUrl());
-        System.out.println("Encryption Key: " + config.getEncryptionKey());
-        System.out.println("Password Length: " + config.getPasswordLength());
-        */
     }
 }
