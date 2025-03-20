@@ -81,10 +81,25 @@ public class AppConfigTest {
     void testGenerateSpecialPassword() {
         AppConfig config = AppConfig.getInstance();
         String password = config.generatePassword(AppConfig.SPECIAL);
-        assertNotNull(password);
-        assertEquals(config.getPasswordLength(), password.length());  // Considerando o valor mínimo
+        assertNotNull(password, "Password should not be null");
+        assertEquals(config.getPasswordLength(), password.length(), "Password length should match the configured length");  // Considerando o valor mínimo
         assertTrue(password.matches("[a-zA-Z0-9!@#$%^&*()\\-_=+]+"), "Password should contain special characters");
         System.out.println("✅ testGenerateSpecialPassword passed!");
+    }
+
+    /**
+     * Tests password generation for alphanumeric passwords.
+     */
+    @Test
+    void testGenerateAlphanumericPassword() {
+        AppConfig config = AppConfig.getInstance();
+        String password = config.generatePassword(AppConfig.ALPHANUMERIC);
+
+        assertNotNull(password, "Password should not be null");
+        assertEquals(config.getPasswordLength(), password.length(), "Password length should match the configured length");
+        assertTrue(password.matches("^[a-zA-Z0-9]+$"), "Password should contain only alphanumeric characters");
+
+        System.out.println("✅ testGenerateAlphanumericPassword passed!");
     }
 
     /**
