@@ -104,7 +104,7 @@ public class AppConfig {
      */
     public synchronized void setEncryptionKey(String newKey) {
         if (newKey == null || newKey.isBlank()) {
-            throw new IllegalArgumentException("Chave não pode ser vazia!");
+            throw new IllegalArgumentException("EncryptionKey não pode ser vazia!");
         }
         this.encryptionKey = newKey;
     }

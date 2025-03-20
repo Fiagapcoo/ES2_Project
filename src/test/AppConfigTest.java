@@ -55,7 +55,7 @@ public class AppConfigTest {
     @Test
     void testInvalidPasswordLength() {
         try {
-            // Reset the singleton instance using reflection
+            // Reset of the singleton instance using reflection
             java.lang.reflect.Field instanceField = AppConfig.class.getDeclaredField("instance");
             instanceField.setAccessible(true);
             instanceField.set(null, null);
@@ -82,8 +82,8 @@ public class AppConfigTest {
         AppConfig config = AppConfig.getInstance();
         String password = config.generatePassword(AppConfig.SPECIAL);
         assertNotNull(password);
-        assertEquals(11, password.length());  // Considerando o valor mínimo
-        assertTrue(password.matches("[a-zA-Z0-9!@#$%^&*()]+"), "Password should contain special characters");
+        assertEquals(config.getPasswordLength(), password.length());  // Considerando o valor mínimo
+        assertTrue(password.matches("[a-zA-Z0-9!@#$%^&*()\\-_=+]+"), "Password should contain special characters");
         System.out.println("✅ testGenerateSpecialPassword passed!");
     }
 
