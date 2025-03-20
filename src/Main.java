@@ -10,5 +10,6 @@ public class Main {
 
         System.out.println("Alphanumeric Password: " + config.generatePassword("ALPHANUMERIC"));
         System.out.println("Special Character Password: " + config.generatePassword("SPECIAL"));
+        System.out.println("Invalid Password: " + config.generatePassword("INVALID"));
     }
 }
