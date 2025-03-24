@@ -9,11 +9,11 @@ import java.util.Properties;
 public class AppConfig {
     public static final String ALPHANUMERIC = "ALPHANUMERIC";
     public static final String SPECIAL = "SPECIAL";
-
     private static AppConfig instance;
     private String databaseUrl;
     private String encryptionKey;
     private int passwordLength;
+    private String folder_path;
 
     /**
      * Private constructor to initialize configurations.
@@ -27,6 +27,7 @@ public class AppConfig {
             this.databaseUrl = props.getProperty("database.url");
             this.encryptionKey = props.getProperty("encryption.key");
             this.passwordLength = Integer.parseInt(props.getProperty("password.length"));
+            this.folder_path = props.getProperty("folder.path");
 
             validate();
         } catch (IOException e) {
@@ -122,15 +123,9 @@ public class AppConfig {
         this.passwordLength = newLength;
     }
 
-    /**
-     * Generates a password using the specified type.
-     *
-     * @param type The type of password generator ("ALPHANUMERIC" or "SPECIAL").
-     * @return A generated password.
-     */
-    public String generatePassword(String type) {
-        PasswordGenerator generator = PasswordGeneratorFactory.createGenerator(type);
-        return generator.generate(passwordLength);
+    public String get_path(){
+        return folder_path;
     }
+
 
 }
