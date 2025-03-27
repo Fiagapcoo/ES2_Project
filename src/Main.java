@@ -2,41 +2,52 @@ import com.es2.project.*;
 
 public class Main {
     public static void main(String[] args) {
+        // Load application configurations
         AppConfig config = AppConfig.getInstance();
-        //System.out.println("Before Update:");
         System.out.println("Database URL: " + config.getDatabaseUrl());
         System.out.println("Encryption Key: " + config.getEncryptionKey());
         System.out.println("Password Length: " + config.getPasswordLength());
         System.out.println("File Storage Path: " + config.get_path());
 
+        // Initialize password generators
         PasswordGenerator Alphanumerical = PasswordGeneratorFactory.createGenerator("ALPHANUMERIC");
         PasswordGenerator Special = PasswordGeneratorFactory.createGenerator("SPECIAL");
 
-         System.out.println("Alphanumeric Password: " + Alphanumerical.generate(11) );
-         System.out.println("Special Character Password: " + Special.generate(11));
+        // Generate and display passwords
+        System.out.println("Alphanumeric Password: " + Alphanumerical.generate(11) );
+        System.out.println("Special Character Password: " + Special.generate(11));
 
-         //Crio a pass com 11 de comprimento
-         String password = Alphanumerical.generate(11);
+        /**
+         * Create a password with the configured length (11 characters).
+         */
+        String password = Alphanumerical.generate(11);
 
-         //crio a interface para lidar com cada tipo de armazenamento
-         PasswordStorage fileStorage = new FilePasswordStorage(config.get_path());
+        /**
+         * Initialize the file-based password storage interface.
+         */
+        PasswordStorage fileStorage = new FilePasswordStorage(config.get_path());
 
-         //crio o storage manager
+        /**
+         * Create a storage manager to handle password storage operations.
+         */
          StorageManager FilestorageManager = new StorageManager(fileStorage);
 
-         //crio uma categoria para guardar as passes de
+        /**
+         * Create a parent category for storing student passwords.
+         */
         SubCategory escola = new SubCategory("Estudantes", FilestorageManager);
-
-        //meto a pass criada anteriormente
         escola.setPassword(password);
 
-        //Crio uma subcategoria para guardar a pass da turma
+        /**
+         * Create a subcategory for storing class-specific passwords.
+         */
         SubCategory turmaA = new SubCategory("turmaA", FilestorageManager);
-
         turmaA.setPassword("turmaA123");
 
+        // Add subcategory to parent
         escola.addChild(turmaA);
 
+        // Display the category hierarchy
         escola.display();
 
 

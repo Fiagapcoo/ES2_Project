@@ -7,6 +7,8 @@ import java.security.SecureRandom;
  */
 public class AlphanumericPasswordGenerator implements PasswordGenerator {
     private static final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    //private static final String CHARACTERS = "!!!!@@@@@@@@@@@@@@@££££££§§€€§€§€£§£§£§€£§";
+
     private static final SecureRandom RANDOM = new SecureRandom();
 
     @Override
