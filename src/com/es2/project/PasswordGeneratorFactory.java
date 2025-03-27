@@ -6,7 +6,7 @@ import java.util.Map;
 /**
  * Factory class to create different types of password generators.
  */
-public class PasswordGeneratorFactory {
+public abstract class PasswordGeneratorFactory {
     private static final Map<String, PasswordGenerator> generators = new HashMap<>();
 
     static {

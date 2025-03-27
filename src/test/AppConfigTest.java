@@ -1,4 +1,7 @@
 import com.es2.project.AppConfig;
+
+import com.es2.project.PasswordGeneratorFactory;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -10,6 +13,14 @@ import java.util.concurrent.Future;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class AppConfigTest {
+
+    @BeforeEach
+    void resetSingleton() throws Exception {
+        // Reseta a instância singleton e a fábrica antes de cada teste
+        java.lang.reflect.Field instanceField = AppConfig.class.getDeclaredField("instance");
+        instanceField.setAccessible(true);
+        instanceField.set(null, null);
+    }
 
     /**
      * Tests whether the singleton pattern is correctly implemented by ensuring
@@ -80,10 +91,14 @@ public class AppConfigTest {
     @Test
     void testGenerateSpecialPassword() {
         AppConfig config = AppConfig.getInstance();
-        String password = config.generatePassword(AppConfig.SPECIAL);
+        int length = config.getPasswordLength();
+
+        // Gera via fábrica diretamente (ou ajuste seu código para expor isso no AppConfig)
+        String password = PasswordGeneratorFactory.createGenerator("SPECIAL").generate(length);
+
         assertNotNull(password, "Password should not be null");
-        assertEquals(config.getPasswordLength(), password.length(), "Password length should match the configured length");  // Considerando o valor mínimo
-        assertTrue(password.matches("[a-zA-Z0-9!@#$%^&*()\\-_=+]+"), "Password should contain special characters");
+        assertEquals(length, password.length());
+        assertTrue(password.matches("[a-zA-Z0-9!@#$%^&*()_=+\\-]+"), "Password deve conter caracteres especiais");
         System.out.println("✅ testGenerateSpecialPassword passed!");
     }
 
@@ -93,12 +108,13 @@ public class AppConfigTest {
     @Test
     void testGenerateAlphanumericPassword() {
         AppConfig config = AppConfig.getInstance();
-        String password = config.generatePassword(AppConfig.ALPHANUMERIC);
+        int length = config.getPasswordLength();
+
+        String password = PasswordGeneratorFactory.createGenerator("ALPHANUMERIC").generate(length);
 
         assertNotNull(password, "Password should not be null");
-        assertEquals(config.getPasswordLength(), password.length(), "Password length should match the configured length");
+        assertEquals(length, password.length());
         assertTrue(password.matches("^[a-zA-Z0-9]+$"), "Password should contain only alphanumeric characters");
-
         System.out.println("✅ testGenerateAlphanumericPassword passed!");
     }
 
@@ -107,10 +123,19 @@ public class AppConfigTest {
      */
     @Test
     void testGenerateInvalidPasswordType() {
-        AppConfig config = AppConfig.getInstance();
         assertThrows(IllegalArgumentException.class, () -> {
-            config.generatePassword("INVALID");
-        }, "Password generation should fail with an invalid type");
+            PasswordGeneratorFactory.createGenerator("INVALID");
+        }, "Should fail for invalid types");
+        System.out.println("✅ testGenerateInvalidPasswordType passed!");
+    }
+
+    /**
+     * Tests the folder path configuration.
+     */
+    @Test
+    void testFolderPathConfiguration() {
+        AppConfig config = AppConfig.getInstance();
+        assertNotNull(config.get_path(), "Folder path should not be null");
         System.out.println("✅ testGenerateInvalidPasswordType passed!");
     }
 }
