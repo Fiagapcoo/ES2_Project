@@ -1,5 +1,7 @@
 import com.es2.project.*;
 
+import java.util.List;
+
 public class Main {
     public static void main(String[] args) {
         // Load application configurations
@@ -50,6 +52,40 @@ public class Main {
         // Display the category hierarchy
         escola.display();
 
+        // Criar sistema de snapshots
+        AppStateManager appStateManager = AppStateManager.getInstance();
+        AppStateBackupService backupService = new AppStateBackupService(appStateManager);
+
+        // Tirar snapshot após setup inicial
+        backupService.takeSnapshot();
+        System.out.println("📸 Snapshot 0 guardado.");
+
+        // Simular alterações
+        turmaA.setPassword("--------------------------------------------------------------------------");
+        config.setPasswordLength(20);
+        config.setDatabaseUrl("jdbc:mysql://localhost/testedb");
+        config.setEncryptionKey("novaChaveSegura123");
+
+        // Verificar valores depois da alteração
+        System.out.println("\n🔧 Estado após alteração:");
+        System.out.println("Password turmaA (atual): " + turmaA.getPassword());
+        System.out.println("Novo passwordLength: " + config.getPasswordLength());
+        System.out.println("Nova DB URL: " + config.getDatabaseUrl());
+        System.out.println("Nova EncryptionKey: " + config.getEncryptionKey());
+
+        // Restaurar o snapshot inicial
+        try {
+            backupService.restoreSnapshot(0, FilestorageManager);
+            System.out.println("\n⏪ Estado restaurado para snapshot 0:");
+            System.out.println("Password turmaA (restaurada): " + turmaA.getPassword());
+            System.out.println("PasswordLength restaurado: " + config.getPasswordLength());
+            System.out.println("DB URL restaurada: " + config.getDatabaseUrl());
+            System.out.println("EncryptionKey restaurada: " + config.getEncryptionKey());
+        } catch (Exception e) {
+            System.err.println("Erro ao restaurar snapshot: " + e.getMessage());
+        }
+
+        System.out.println("\n✅ Teste completo.");
 
 
     }
