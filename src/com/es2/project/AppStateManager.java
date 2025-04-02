@@ -70,7 +70,7 @@ public class AppStateManager {
         config.setDatabaseUrl(state.getDatabaseUrl());
         config.setEncryptionKey(state.getEncryptionKey());
         config.setPasswordLength(state.getPasswordLength());
-        storageManager.restorePasswordsFromState(state);
+        storageManager.restorePasswordsFromState(this.accessedPasswords);
     }
 
     public Map<String, List<AccessInfo>> getAccessedInfoMap() {

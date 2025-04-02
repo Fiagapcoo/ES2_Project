@@ -16,6 +16,10 @@ public class StorageManager {
         this.appStateManager = AppStateManager.getInstance();
     }
 
+    public void setPasswordStorage(PasswordStorage passwordStorage) {
+        this.passwordStorage = passwordStorage;
+    }
+
     public void savePassword(String categoryName, String password) {
         String encryptedPassword = cryptoManager.encrypt(password);
         passwordStorage.savePassword(categoryName, encryptedPassword);
@@ -33,9 +37,8 @@ public class StorageManager {
         return decryptedPassword;
     }
 
-    public void restorePasswordsFromState(AppState state) {
-
-        for (Map.Entry<String, List<AppStateManager.AccessInfo>> entry : state.getState().entrySet()) {
+    public void restorePasswordsFromState(Map<String, List<AppStateManager.AccessInfo>> stateData) {
+        for (Map.Entry<String, List<AppStateManager.AccessInfo>> entry : stateData.entrySet()) {
             String category = entry.getKey();
             List<AppStateManager.AccessInfo> history = entry.getValue();
 
@@ -43,9 +46,9 @@ public class StorageManager {
                 // Procurar o último AccessInfo com ação "modification"
                 for (int i = history.size() - 1; i >= 0; i--) {
                     AppStateManager.AccessInfo access = history.get(i);
-                    if ("modification".equalsIgnoreCase(access.action)) {
-                        savePassword(category, access.password);
-                        break; // parar no primeiro encontrado
+                    if ("modification".equalsIgnoreCase(access.getAction())) {
+                        savePassword(category, access.getPassword());
+                        break;
                     }
                 }
             }

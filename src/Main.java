@@ -58,7 +58,7 @@ public class Main {
 
         // Tirar snapshot após setup inicial
         backupService.takeSnapshot();
-        System.out.println("📸 Snapshot 0 guardado.");
+        System.out.println("Snapshot 0 guardado.");
 
         // Simular alterações
         turmaA.setPassword("--------------------------------------------------------------------------");
@@ -67,7 +67,7 @@ public class Main {
         config.setEncryptionKey("novaChaveSegura123");
 
         // Verificar valores depois da alteração
-        System.out.println("\n🔧 Estado após alteração:");
+        System.out.println("\nEstado após alteração:");
         System.out.println("Password turmaA (atual): " + turmaA.getPassword());
         System.out.println("Novo passwordLength: " + config.getPasswordLength());
         System.out.println("Nova DB URL: " + config.getDatabaseUrl());
@@ -76,7 +76,7 @@ public class Main {
         // Restaurar o snapshot inicial
         try {
             backupService.restoreSnapshot(0, FilestorageManager);
-            System.out.println("\n⏪ Estado restaurado para snapshot 0:");
+            System.out.println("\nEstado restaurado para snapshot 0:");
             System.out.println("Password turmaA (restaurada): " + turmaA.getPassword());
             System.out.println("PasswordLength restaurado: " + config.getPasswordLength());
             System.out.println("DB URL restaurada: " + config.getDatabaseUrl());
@@ -85,7 +85,7 @@ public class Main {
             System.err.println("Erro ao restaurar snapshot: " + e.getMessage());
         }
 
-        System.out.println("\n✅ Teste completo.");
+        System.out.println("\nTeste completo.");
 
 
     }
