@@ -1,11 +1,8 @@
 package com.es2.project;
 
 public abstract class Category {
-
-
     private String name;
     private StorageManager storageManager;
-
 
     public Category(String name, StorageManager storageManager) {
         this.name = name;

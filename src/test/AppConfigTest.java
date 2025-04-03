@@ -1,9 +1,8 @@
-import com.es2.project.AppConfig;
-
-import com.es2.project.PasswordGeneratorFactory;
+import com.es2.project.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import javax.crypto.Cipher;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -12,31 +11,68 @@ import java.util.concurrent.Future;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+/**
+ * Test class for AppConfig singleton and related functionality.
+ * Includes tests for configuration validation, password generation,
+ * Object Pool pattern, and Memento pattern implementations.
+ */
 public class AppConfigTest {
 
     @BeforeEach
-    void resetSingleton() throws Exception {
-        // Reseta a instância singleton e a fábrica antes de cada teste
-        java.lang.reflect.Field instanceField = AppConfig.class.getDeclaredField("instance");
-        instanceField.setAccessible(true);
-        instanceField.set(null, null);
+    void resetSingletons() throws Exception {
+        // Reset AppConfig singleton
+        java.lang.reflect.Field appConfigInstance = AppConfig.class.getDeclaredField("instance");
+        appConfigInstance.setAccessible(true);
+        appConfigInstance.set(null, null);
+
+        // Reset AppStateManager singleton
+        java.lang.reflect.Field appStateInstance = AppStateManager.class.getDeclaredField("instance");
+        appStateInstance.setAccessible(true);
+        appStateInstance.set(null, null);
     }
 
     /**
-     * Tests whether the singleton pattern is correctly implemented by ensuring
-     * that multiple calls to getInstance() return the same instance.
+     * Tests full Memento pattern workflow.
+     * Creates initial state, modifies configuration and passwords,
+     * then verifies successful restoration from snapshot.
+     */
+    @Test
+    void testMementoStateRestoration() throws Exception {
+        AppConfig config = AppConfig.getInstance();
+        StorageManager storageManager = StorageManager.getInstance();
+        SubCategory category = new SubCategory("TestCategory", storageManager);
+        category.setPassword("originalPassword");
+
+        AppStateBackupService backup = new AppStateBackupService(AppStateManager.getInstance());
+        backup.takeSnapshot();
+
+        category.setPassword("modifiedPassword");
+        config.setPasswordLength(20);
+
+        backup.restoreSnapshot(0);
+
+        String restoredPassword = category.getPassword();
+        assertEquals("originalPassword", restoredPassword, "Password should be restored correctly after snapshot");
+
+        assertEquals(11, config.getPasswordLength());
+    }
+
+
+    /**
+     * Tests that the AppConfig singleton instance is unique.
+     * Verifies that multiple calls to getInstance() return the same object.
      */
     @Test
     void testSingletonInstanceUnicity() {
         AppConfig instance1 = AppConfig.getInstance();
         AppConfig instance2 = AppConfig.getInstance();
         assertSame(instance1, instance2, "Instances should be the same");
-        System.out.println("✅ testSingletonInstanceUnicity passed!");
     }
 
     /**
-     * Tests if the singleton instance is thread-safe by creating multiple threads
-     * that access getInstance() concurrently. All instances should be the same.
+     * Tests thread safety of the AppConfig singleton.
+     * Creates 100 concurrent threads accessing getInstance() and verifies
+     * all receive the same instance.
      */
     @Test
     void testThreadSafety() throws Exception {
@@ -56,54 +92,44 @@ public class AppConfigTest {
         }
 
         executor.shutdown();
-        System.out.println("✅ testThreadSafety passed!");
     }
 
     /**
-     * Tests if an invalid configuration file causes the singleton initialization
-     * to throw an exception due to an invalid password length.
+     * Tests validation of invalid password length configuration.
+     * Loads a configuration file with password length below minimum requirement
+     * and expects an IllegalArgumentException.
      */
     @Test
     void testInvalidPasswordLength() {
         try {
-            // Reset of the singleton instance using reflection
-            java.lang.reflect.Field instanceField = AppConfig.class.getDeclaredField("instance");
-            instanceField.setAccessible(true);
-            instanceField.set(null, null);
-
-            // Set a system property to use an invalid configuration file
             System.setProperty("config.file", "invalid_config.properties");
-
-            // Singleton initialization should fail with an exception
             assertThrows(IllegalArgumentException.class, AppConfig::getInstance);
-            System.out.println("✅ testInvalidPasswordLength passed!");
         } catch (Exception e) {
             fail("Error while resetting singleton: " + e.getMessage());
         } finally {
-            // Clear the property to avoid affecting other tests
             System.clearProperty("config.file");
         }
     }
 
     /**
-     * Tests password generation for passwords with special characters.
+     * Tests generation of passwords with special characters.
+     * Verifies generated password length and character composition.
      */
     @Test
     void testGenerateSpecialPassword() {
         AppConfig config = AppConfig.getInstance();
         int length = config.getPasswordLength();
 
-        // Gera via fábrica diretamente (ou ajuste seu código para expor isso no AppConfig)
         String password = PasswordGeneratorFactory.createGenerator("SPECIAL").generate(length);
 
-        assertNotNull(password, "Password should not be null");
+        assertNotNull(password);
         assertEquals(length, password.length());
-        assertTrue(password.matches("[a-zA-Z0-9!@#$%^&*()_=+\\-]+"), "Password deve conter caracteres especiais");
-        System.out.println("✅ testGenerateSpecialPassword passed!");
+        assertTrue(password.matches("[a-zA-Z0-9!@#$%^&*()_=+\\-]+"));
     }
 
     /**
-     * Tests password generation for alphanumeric passwords.
+     * Tests generation of alphanumeric passwords.
+     * Verifies generated password contains only letters and numbers.
      */
     @Test
     void testGenerateAlphanumericPassword() {
@@ -112,30 +138,112 @@ public class AppConfigTest {
 
         String password = PasswordGeneratorFactory.createGenerator("ALPHANUMERIC").generate(length);
 
-        assertNotNull(password, "Password should not be null");
+        assertNotNull(password);
         assertEquals(length, password.length());
-        assertTrue(password.matches("^[a-zA-Z0-9]+$"), "Password should contain only alphanumeric characters");
-        System.out.println("✅ testGenerateAlphanumericPassword passed!");
+        assertTrue(password.matches("^[a-zA-Z0-9]+$"));
     }
 
     /**
-     * Tests password generation with an invalid type.
+     * Tests handling of invalid password generator type.
+     * Expects IllegalArgumentException when requesting non-existent generator.
      */
     @Test
     void testGenerateInvalidPasswordType() {
         assertThrows(IllegalArgumentException.class, () -> {
             PasswordGeneratorFactory.createGenerator("INVALID");
-        }, "Should fail for invalid types");
-        System.out.println("✅ testGenerateInvalidPasswordType passed!");
+        });
     }
 
     /**
-     * Tests the folder path configuration.
+     * Tests folder path configuration loading.
+     * Verifies the folder path is properly loaded from config file.
      */
     @Test
     void testFolderPathConfiguration() {
         AppConfig config = AppConfig.getInstance();
-        assertNotNull(config.get_path(), "Folder path should not be null");
-        System.out.println("✅ testGenerateInvalidPasswordType passed!");
+        assertNotNull(config.get_path());
     }
+
+    /**
+     * Tests CipherPool singleton behavior.
+     * Verifies that multiple calls with same parameters return same instance.
+     */
+    @Test
+    void testCipherPoolInstanceUnicity() {
+        CipherPool pool1 = CipherPool.getInstance("key1-chave-segura-top");
+        CipherPool pool2 = CipherPool.getInstance("key1-chave-segura-top");
+        assertSame(pool1, pool2);
+    }
+
+    /**
+     * Tests basic Object Pool functionality.
+     * Verifies successful borrowing and releasing of Cipher objects.
+     */
+    @Test
+    void testCipherPoolBorrowAndRelease() throws Exception {
+        CipherPool pool = CipherPool.getInstance("testKey-chave-segura-top");
+        Cipher cipher = pool.borrowCipher(1);
+        assertNotNull(cipher);
+        pool.releaseCipher(cipher);
+    }
+
+    /**
+     * Tests Object Pool capacity limits.
+     * Sets maximum pool size to 1 and verifies proper exhaustion behavior.
+     */
+    @Test
+    void testCipherPoolExhaustion() throws Exception {
+        CipherPool.reset("uma-chave-muito-segura");
+        CipherPool pool = CipherPool.getInstance("uma-chave-muito-segura");
+        pool.setMaxSize(1);
+
+        Cipher first = pool.borrowCipher(Cipher.ENCRYPT_MODE); // funciona
+        assertThrows(RuntimeException.class, () -> pool.borrowCipher(Cipher.ENCRYPT_MODE));
+    }
+
+
+    /**
+     * Tests Memento data integrity.
+     * Verifies that created snapshots contain recorded state information.
+     */
+    @Test
+    void testMementoSnapshotIntegrity() {
+        AppStateManager manager = AppStateManager.getInstance();
+        manager.recordAccess("Category1", "pass1", "modification");
+        AppState state = manager.saveState();
+        assertTrue(state.getState().containsKey("Category1"));
+    }
+
+    /**
+     * Tests handling of invalid snapshot restoration.
+     * Attempts to restore non-existent snapshot and expects exception.
+     */
+    @Test
+    void testMementoInvalidSnapshot() {
+        AppStateBackupService backup = new AppStateBackupService(AppStateManager.getInstance());
+        assertThrows(Exception.class, () -> backup.restoreSnapshot(999));
+    }
+
+    @Test
+    void testKeyChangeTriggersReset() throws Exception {
+        AppConfig config = AppConfig.getInstance();
+        config.setEncryptionKey("AAAAAAAAAAAAAAAA"); // 16 caracteres bem definidos
+        String password = "superSecreta";
+
+        StorageManager storageManager = StorageManager.getInstance();
+        storageManager.savePassword("TestCategory", password);
+
+        String decrypted = storageManager.loadPassword("TestCategory");
+        assertEquals(password, decrypted); // deve funcionar com a chave correta
+
+        // Muda a chave para uma chave completamente diferente nos primeiros 16 bytes
+        config.setEncryptionKey("ZZZZZZZZZZZZZZZZ");
+
+        assertThrows(RuntimeException.class, () -> {
+            storageManager.loadPassword("TestCategory");
+        }, "Esperava falha ao tentar desencriptar com chave trocada");
+    }
+
+
+
 }
