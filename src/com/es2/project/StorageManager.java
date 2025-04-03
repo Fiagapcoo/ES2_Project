@@ -6,8 +6,9 @@ import java.util.Map;
 
 public class StorageManager {
 
+    private static StorageManager instance;
     private PasswordStorage passwordStorage;
-    private final CryptoManager cryptoManager;
+    private CryptoManager cryptoManager;
     private final AppStateManager appStateManager;
 
     public StorageManager(PasswordStorage passwordStorage) {
@@ -16,14 +17,37 @@ public class StorageManager {
         this.appStateManager = AppStateManager.getInstance();
     }
 
-    public void setPasswordStorage(PasswordStorage passwordStorage) {
+    private CryptoManager getCryptoManager() {
+        cryptoManager =  CryptoManager.getInstance();
+        return cryptoManager;
+    }
+
+    public static synchronized StorageManager getInstance() {
+        if (instance == null) {
+            PasswordStorage defaultStorage = new FilePasswordStorage(AppConfig.getInstance().get_path());
+            instance = new StorageManager(defaultStorage);
+        }
+        return instance;
+    }
+
+    public static synchronized void reloadInstance() {
+        PasswordStorage defaultStorage = new FilePasswordStorage(AppConfig.getInstance().get_path());
+        instance = new StorageManager(defaultStorage);
+    }
+
+
+    public synchronized void setPasswordStorage(PasswordStorage passwordStorage) {
         this.passwordStorage = passwordStorage;
     }
 
     public void savePassword(String categoryName, String password) {
-        String encryptedPassword = cryptoManager.encrypt(password);
+        String encryptedPassword = getCryptoManager().encrypt(password);
         passwordStorage.savePassword(categoryName, encryptedPassword);
-        appStateManager.recordAccess(categoryName, password, "modification");
+        appStateManager.recordAccess(categoryName, encryptedPassword, "modification");
+    }
+
+    public void saveEncryptedPassword(String categoryName, String encryptedPassword) {
+        passwordStorage.savePassword(categoryName, encryptedPassword);
     }
 
 
@@ -32,7 +56,7 @@ public class StorageManager {
         if (encryptedPassword == null) {
             return null;
         }
-        String decryptedPassword = cryptoManager.decrypt(encryptedPassword);
+        String decryptedPassword = getCryptoManager().decrypt(encryptedPassword);
         appStateManager.recordAccess(categoryName, decryptedPassword, "consultation");
         return decryptedPassword;
     }
@@ -43,11 +67,11 @@ public class StorageManager {
             List<AppStateManager.AccessInfo> history = entry.getValue();
 
             if (history != null && !history.isEmpty()) {
-                // Procurar o último AccessInfo com ação "modification"
                 for (int i = history.size() - 1; i >= 0; i--) {
                     AppStateManager.AccessInfo access = history.get(i);
                     if ("modification".equalsIgnoreCase(access.getAction())) {
-                        savePassword(category, access.getPassword());
+                        // Salve a senha já criptografada diretamente
+                        saveEncryptedPassword(category, access.getPassword());
                         break;
                     }
                 }

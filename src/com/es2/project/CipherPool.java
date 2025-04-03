@@ -2,6 +2,8 @@ package com.es2.project;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
+import java.security.MessageDigest;
+import java.util.Base64;
 import java.util.LinkedList;
 
 public class CipherPool {
@@ -11,9 +13,26 @@ public class CipherPool {
     private int maxSize = 10;
     private final SecretKeySpec keySpec;
 
-    public CipherPool(String encryptionKey) {
-        byte[] keyBytes = encryptionKey.getBytes();
-        this.keySpec = new SecretKeySpec(keyBytes, 0, 16, "AES");
+    private CipherPool(String encryptionKey) {
+        try {
+            byte[] keyBytes = encryptionKey.getBytes("UTF-8");
+            MessageDigest sha = MessageDigest.getInstance("SHA-256");
+            keyBytes = sha.digest(keyBytes); // gera 32 bytes
+            this.keySpec = new SecretKeySpec(keyBytes, 0, 16, "AES"); // usa 128 bits (16 bytes)
+        } catch (Exception e) {
+            throw new RuntimeException("Erro ao gerar chave AES", e);
+        }
+    }
+
+    public static synchronized CipherPool getInstance(String encryptionKey) {
+        if (instance == null) {
+            instance = new CipherPool(encryptionKey);
+        }
+        return instance;
+    }
+
+    public static synchronized void reset(String encryptionKey) {
+        instance = new CipherPool(encryptionKey);
     }
 
     private Cipher createAndInitCipher(int mode) throws Exception {
@@ -22,48 +41,25 @@ public class CipherPool {
         return cipher;
     }
 
-    public static synchronized CipherPool getInstance(String encryptionkey) {
-        if (instance == null) {
-            instance = new CipherPool(encryptionkey);
-        }
-        return instance;
-    }
-
-    public synchronized Cipher borrowEncryptCipher() throws Exception {
+    public synchronized Cipher borrowCipher(int mode) throws Exception {
         if (!available.isEmpty()) {
             Cipher cipher = available.removeFirst();
-            cipher.init(Cipher.ENCRYPT_MODE, keySpec);
+            cipher.init(mode, keySpec); // reinit para o modo correto
             inUse.add(cipher);
             return cipher;
         }
 
-        if(inUse.size() < maxSize) {
-            Cipher newCipher = createAndInitCipher(Cipher.ENCRYPT_MODE);
+        if (inUse.size() < maxSize) {
+            Cipher newCipher = createAndInitCipher(mode);
             inUse.add(newCipher);
             return newCipher;
         }
-        throw new RuntimeException("Pool de Cipher esgotado!");
+        throw new RuntimeException("Cipher pool exhausted!");
     }
 
-    public synchronized Cipher borrowDecryptCipher() throws Exception {
-        if (!available.isEmpty()) {
-            Cipher cipher = available.removeFirst();
-            cipher.init(Cipher.DECRYPT_MODE, keySpec);
-            inUse.add(cipher);
-            return cipher;
-        }
-
-        if(inUse.size() < maxSize) {
-            Cipher newCipher = createAndInitCipher(Cipher.DECRYPT_MODE);
-            inUse.add(newCipher);
-            return newCipher;
-        }
-        throw new RuntimeException("Pool de Cipher esgotado!");
-    }
-
-    public synchronized void releaseCipher(Cipher cipher) throws Exception{
-        if(!inUse.remove(cipher)) {
-            throw new RuntimeException("Cipher não pertence ao pool ou já foi libertado.");
+    public synchronized void releaseCipher(Cipher cipher) throws Exception {
+        if (!inUse.remove(cipher)) {
+            throw new RuntimeException("Cipher não pertence ao pool");
         }
         available.add(cipher);
     }

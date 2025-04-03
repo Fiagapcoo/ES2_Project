@@ -15,12 +15,12 @@ public class AppStateBackupService extends Object{
         snapshots.add(snapshot);
     }
 
-    public void restoreSnapshot(int index, StorageManager storageManager) throws Exception {
+    public void restoreSnapshot(int index) throws Exception {
         if (index < 0 || index >= snapshots.size()) {
             throw new Exception("Snapshot não existe!");
         }
         AppState snapshot = snapshots.get(index);
-        stateManager.restore(snapshot, storageManager);
+        stateManager.restore(snapshot);
     }
 
     public int totalSnapshots() {

@@ -1,81 +1,58 @@
 import com.es2.project.*;
 
-import java.util.List;
-
 public class Main {
     public static void main(String[] args) {
-        // Load application configurations
+        // Carregar configurações
         AppConfig config = AppConfig.getInstance();
         System.out.println("Database URL: " + config.getDatabaseUrl());
         System.out.println("Encryption Key: " + config.getEncryptionKey());
         System.out.println("Password Length: " + config.getPasswordLength());
         System.out.println("File Storage Path: " + config.get_path());
 
-        // Initialize password generators
-        PasswordGenerator Alphanumerical = PasswordGeneratorFactory.createGenerator("ALPHANUMERIC");
-        PasswordGenerator Special = PasswordGeneratorFactory.createGenerator("SPECIAL");
+        // Inicializar geradores de senha
+        PasswordGenerator alphanumeric = PasswordGeneratorFactory.createGenerator("ALPHANUMERIC");
+        PasswordGenerator special = PasswordGeneratorFactory.createGenerator("SPECIAL");
 
-        // Generate and display passwords
-        System.out.println("Alphanumeric Password: " + Alphanumerical.generate(11) );
-        System.out.println("Special Character Password: " + Special.generate(11));
+        // Gerar e exibir senhas
+        System.out.println("Alphanumeric Password: " + alphanumeric.generate(11));
+        System.out.println("Special Character Password: " + special.generate(11));
 
-        /**
-         * Create a password with the configured length (11 characters).
-         */
-        String password = Alphanumerical.generate(11);
-
-        /**
-         * Initialize the file-based password storage interface.
-         */
+        // Usar StorageManager Singleton
         PasswordStorage fileStorage = new FilePasswordStorage(config.get_path());
+        StorageManager storageManager = StorageManager.getInstance();
 
-        /**
-         * Create a storage manager to handle password storage operations.
-         */
-         StorageManager FilestorageManager = new StorageManager(fileStorage);
+        // Criar hierarquia de categorias
+        SubCategory escola = new SubCategory("Estudantes", storageManager);
+        escola.setPassword(alphanumeric.generate(11));
 
-        /**
-         * Create a parent category for storing student passwords.
-         */
-        SubCategory escola = new SubCategory("Estudantes", FilestorageManager);
-        escola.setPassword(password);
-
-        /**
-         * Create a subcategory for storing class-specific passwords.
-         */
-        SubCategory turmaA = new SubCategory("turmaA", FilestorageManager);
+        SubCategory turmaA = new SubCategory("turmaA", storageManager);
         turmaA.setPassword("turmaA123");
-
-        // Add subcategory to parent
         escola.addChild(turmaA);
 
-        // Display the category hierarchy
+        // Exibir estrutura
         escola.display();
 
-        // Criar sistema de snapshots
+        // Sistema de snapshots
         AppStateManager appStateManager = AppStateManager.getInstance();
         AppStateBackupService backupService = new AppStateBackupService(appStateManager);
-
-        // Tirar snapshot após setup inicial
         backupService.takeSnapshot();
-        System.out.println("Snapshot 0 guardado.");
+        System.out.println("\nSnapshot 0 guardado.");
 
         // Simular alterações
+        config.setEncryptionKey("novaChaveSegura123");
         turmaA.setPassword("--------------------------------------------------------------------------");
         config.setPasswordLength(20);
         config.setDatabaseUrl("jdbc:mysql://localhost/testedb");
-        config.setEncryptionKey("novaChaveSegura123");
 
-        // Verificar valores depois da alteração
         System.out.println("\nEstado após alteração:");
         System.out.println("Password turmaA (atual): " + turmaA.getPassword());
         System.out.println("Novo passwordLength: " + config.getPasswordLength());
         System.out.println("Nova DB URL: " + config.getDatabaseUrl());
         System.out.println("Nova EncryptionKey: " + config.getEncryptionKey());
 
-        // Restaurar o snapshot inicial
+        // Restaurar snapshot
         try {
-            backupService.restoreSnapshot(0, FilestorageManager);
+            backupService.restoreSnapshot(0); // Sem parâmetro StorageManager
             System.out.println("\nEstado restaurado para snapshot 0:");
             System.out.println("Password turmaA (restaurada): " + turmaA.getPassword());
             System.out.println("PasswordLength restaurado: " + config.getPasswordLength());
@@ -86,7 +63,5 @@ public class Main {
         }
 
         System.out.println("\nTeste completo.");
-
-
     }
 }

@@ -108,6 +108,8 @@ public class AppConfig {
             throw new IllegalArgumentException("EncryptionKey não pode ser vazia!");
         }
         this.encryptionKey = newKey;
+        CryptoManager.reload(newKey);
+        StorageManager.reloadInstance();
     }
 
     /**

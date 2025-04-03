@@ -63,14 +63,17 @@ public class AppStateManager {
         return new AppState(accessedPasswords, config.getDatabaseUrl(), config.getEncryptionKey(), config.getPasswordLength());
     }
 
-    public void restore(AppState state, StorageManager storageManager) {
-
+    public void restore(AppState state) {
         this.accessedPasswords = state.getState();
+
         AppConfig config = AppConfig.getInstance();
         config.setDatabaseUrl(state.getDatabaseUrl());
         config.setEncryptionKey(state.getEncryptionKey());
         config.setPasswordLength(state.getPasswordLength());
-        storageManager.restorePasswordsFromState(this.accessedPasswords);
+
+        CryptoManager.reload(state.getEncryptionKey());
+
+        StorageManager.getInstance().restorePasswordsFromState(this.accessedPasswords);
     }
 
     public Map<String, List<AccessInfo>> getAccessedInfoMap() {
