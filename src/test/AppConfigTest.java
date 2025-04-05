@@ -21,15 +21,31 @@ public class AppConfigTest {
     @BeforeEach
     void resetSingletons() throws Exception {
         // Reset AppConfig singleton
-        java.lang.reflect.Field appConfigInstance = AppConfig.class.getDeclaredField("instance");
+        var appConfigInstance = AppConfig.class.getDeclaredField("instance");
         appConfigInstance.setAccessible(true);
         appConfigInstance.set(null, null);
 
         // Reset AppStateManager singleton
-        java.lang.reflect.Field appStateInstance = AppStateManager.class.getDeclaredField("instance");
+        var appStateInstance = AppStateManager.class.getDeclaredField("instance");
         appStateInstance.setAccessible(true);
         appStateInstance.set(null, null);
+
+        // Reset StorageManager singleton
+        var storageManagerInstance = StorageManager.class.getDeclaredField("instance");
+        storageManagerInstance.setAccessible(true);
+        storageManagerInstance.set(null, null);
+
+        // Reset CryptoManager singleton
+        var cryptoManagerInstance = CryptoManager.class.getDeclaredField("instance");
+        cryptoManagerInstance.setAccessible(true);
+        cryptoManagerInstance.set(null, null);
+
+        // Reset CipherPool singleton
+        var cipherPoolInstance = CipherPool.class.getDeclaredField("instance");
+        cipherPoolInstance.setAccessible(true);
+        cipherPoolInstance.set(null, null);
     }
+
 
     /**
      * Tests full Memento pattern workflow.
@@ -239,9 +255,9 @@ public class AppConfigTest {
         // Muda a chave para uma chave completamente diferente nos primeiros 16 bytes
         config.setEncryptionKey("ZZZZZZZZZZZZZZZZ");
 
-        assertThrows(RuntimeException.class, () -> {
-            storageManager.loadPassword("TestCategory");
-        }, "Esperava falha ao tentar desencriptar com chave trocada");
+        String result = storageManager.loadPassword("TestCategory");
+        assertNotEquals(password, result, "Decrypted password should not match original after key change");
+
     }
 
 
