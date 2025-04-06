@@ -63,5 +63,24 @@ public class Main {
         }
 
         System.out.println("\nTeste completo.");
+
+
+        StorageManager storage = new StorageManager(new FilePasswordStorage("passwords.dat"));
+        PasswordManager basicManager = new BasicPasswordManager(storage);
+
+
+        PasswordManager securedManager = new SecurityAlertDecorator(
+                new MFADecorator(basicManager) // Wrap MFA around the core
+        );
+
+
+        securedManager.savePassword("email", "mySecret123");
+
+
+        String password = securedManager.getPassword("email");
+
+
+
+
     }
 }
