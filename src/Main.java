@@ -65,7 +65,7 @@ public class Main {
         System.out.println("\nTeste completo.");
 
 
-        StorageManager storage = new StorageManager(new FilePasswordStorage("passwords.dat"));
+        StorageManager storage = new StorageManager(new FilePasswordStorage(config.get_path()));
         PasswordManager basicManager = new BasicPasswordManager(storage);
 
 
