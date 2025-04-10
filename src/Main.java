@@ -39,10 +39,10 @@ public class Main {
         System.out.println("\nSnapshot 0 guardado.");
 
         // Simular alterações
-        config.setEncryptionKey("novaChaveSegura123");
         turmaA.setPassword("--------------------------------------------------------------------------");
         config.setPasswordLength(20);
         config.setDatabaseUrl("jdbc:mysql://localhost/testedb");
+        config.setEncryptionKey("novaChaveSegura123");
 
         System.out.println("\nEstado após alteração:");
         System.out.println("Password turmaA (atual): " + turmaA.getPassword());
@@ -63,5 +63,24 @@ public class Main {
         }
 
         System.out.println("\nTeste completo.");
+
+
+        StorageManager storage = new StorageManager(new FilePasswordStorage(config.get_path()));
+        PasswordManager basicManager = new BasicPasswordManager(storage);
+
+
+        PasswordManager securedManager = new SecurityAlertDecorator(
+                new MFADecorator(basicManager) // Wrap MFA around the core
+        );
+
+
+        securedManager.savePassword("email", "mySecret123");
+
+
+        String password = securedManager.getPassword("email");
+
+
+
+
     }
 }

@@ -36,7 +36,7 @@ public class CipherPool {
     }
 
     private Cipher createAndInitCipher(int mode) throws Exception {
-        Cipher cipher = Cipher.getInstance("AES");
+        Cipher cipher = Cipher.getInstance("AES/ECB/NoPadding");
         cipher.init(mode, keySpec);
         return cipher;
     }
