@@ -214,8 +214,10 @@ public class AppConfigTest {
         StorageManager storageManager = new StorageManager(storage);
         PasswordManager baseManager = new BasicPasswordManager(storageManager);
         PasswordManager securedManager = new MFADecorator(baseManager);
+        PasswordManager alertedManager = new SecurityAlertDecorator(securedManager);
 
         securedManager.savePassword("bank", "securePassword");
+        alertedManager.savePassword("xpto","teste");
         assertEquals("securePassword", securedManager.getPassword("bank"));
     }
 
