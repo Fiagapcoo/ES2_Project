@@ -19,9 +19,17 @@ app.use(express.json());
 app.use(morgan('dev'));
 app.use('/api', appRoutes);
 
-// Rota de teste
-app.get('/', (req, res) => {
-  res.send('API Running successfully!');
+// Validação de Health Check
+app.get('/health', (req, res) => {
+  res.status(200).json({ 
+    status: 'UP',
+    timestamp: new Date().toISOString()
+  });
+});
+
+app.use((err, req, res, next) => {
+    console.error('Global error handler:', err);
+    res.status(500).json({ error: 'Internal server error' });
 });
 
 // Porta
