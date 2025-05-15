@@ -40,14 +40,20 @@ router.put(
 );
 
 
-// PROTECTED ROUTE: Get a specific password for an app
+// PROTECTED ROUTE: Get the password for a specific app
 router.get(
   '/app/password/:appid/',
-  authenticateJWT,               // Check if user has a valid JWT token
-  authorize('read:password'),    // Verify that the user has permission to read passwords
-  getPassword                    // Execute controller function to retrieve the password
-);
+  authenticateJWT,
+  (req, res, next) => {
+    // Decide qual permissão verificar com base no role
+    const userRole = req.user.role;
+    const permission = userRole === 'admin' ? 'read:password' : 'read:own:password';
 
+    // Encapsular e executar o middleware correto
+    return authorize(permission)(req, res, next);
+  },
+  getPassword
+);
 
 // PROTECTED ROUTE: Get a list of all registered applications
 router.get(

@@ -8,10 +8,10 @@ const passwords = [];
 // Controller to register a new application
 const registerApp = async (req, res) => {
   try {
-    const { appid, name, secret } = req.body;
+    const { appid, name, secret, role, password } = req.body;
 
     // Validate required fields
-    if (!appid || !name || !secret) {
+    if (!appid || !name || !secret || !password) {
       console.warn('[REGISTER] Missing fields in request body.');
       return res.status(400).json({ error: 'All fields are mandatory.' });
     }
@@ -25,7 +25,8 @@ const registerApp = async (req, res) => {
 
     // Hash the secret before saving
     const hashedSecret = await bcrypt.hash(secret, 10);
-    const newApp = new App(appid, name, hashedSecret, ['admin']);
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const newApp = new App(appid, name, hashedSecret, [role || 'client'], hashedPassword);
     apps.push(newApp); // Save to in-memory list
 
     // Create JWT token valid for 1 hour
@@ -49,7 +50,7 @@ const registerApp = async (req, res) => {
 // Controller to create a hashed password for the authenticated app
 const createPassword = async (req, res) => {
   try {
-    const appid = req.user.appid;
+    const appid = req.params.appid;
     const { password } = req.body;
 
     // Ensure password is provided
@@ -64,15 +65,14 @@ const createPassword = async (req, res) => {
     }
 
     // Prevent duplicate password creation
-    const existingPassword = passwords.find(p => p.appid === appid);
+    const existingPassword = apps.find(a => a.appid === appid);
     if (existingPassword) {
       return res.status(409).json({ error: 'Password for this app already exists.' });
     }
 
     // Hash and store password
     const hashedPassword = await bcrypt.hash(password, 10);
-    const newPassword = { appid, password: hashedPassword };
-    passwords.push(newPassword);
+    apps.push(hashedPassword);
 
     res.status(201).json({ message: 'Password created successfully!' });
   } catch (error) {
@@ -80,12 +80,10 @@ const createPassword = async (req, res) => {
   }
 };
 
-
-
 // Controller to update the password of the authenticated app
 const updatePassword = async (req, res) => {
   try {
-    const appid = req.user.appid;
+    const appid = req.params.appid;
     const { password } = req.body;
 
     if (!password) {
@@ -98,14 +96,14 @@ const updatePassword = async (req, res) => {
     }
 
     // Locate existing password by appid
-    const passwordIndex = passwords.findIndex(p => p.appid === appid);
+    const passwordIndex = apps.findIndex(a => a.appid === appid);
     if (passwordIndex === -1) {
       return res.status(404).json({ error: 'Password for this app not found.' });
     }
 
     // Hash new password and update
     const hashedPassword = await bcrypt.hash(password, 10);
-    passwords[passwordIndex].password = hashedPassword;
+    apps[passwordIndex].password = hashedPassword;
 
     res.status(200).json({ message: 'Password updated successfully!' });
 
@@ -118,7 +116,7 @@ const updatePassword = async (req, res) => {
 // Controller to retrieve the hashed password for the authenticated app
 const getPassword = (req, res) => {
   try {
-    const appid = req.user.appid;
+    const appid = req.params.appid;
 
     // Confirm app is registered
     const appExists = apps.find(a => a.appid === appid);
@@ -128,7 +126,7 @@ const getPassword = (req, res) => {
     }
 
     // Locate the password by appid
-    const password = passwords.find(p => p.appid === appid);
+    const password = apps.find(a => a.appid === appid);
     if (!password) {
       console.warn(`[READ] Password not found for appid '${appid}'`);
       return res.status(404).json({ error: 'Password for this app not found.' });
