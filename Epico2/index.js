@@ -42,3 +42,5 @@ const PORT = process.env.PORT || 3000; // Use environment variable or default to
 app.listen(PORT, () => {
   console.log(`Server is running at port ${PORT}`); // Confirmation message when the server starts
 });
+
+module.exports = app;

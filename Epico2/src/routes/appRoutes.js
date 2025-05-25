@@ -35,7 +35,14 @@ router.post(
 router.put(
   '/app/password/:appid/',
   authenticateJWT,               // Check if user has a valid JWT token
-  authorize('update:password'),  // Verify that the user has permission to update passwords
+  (req, res, next) => {
+    // Decide qual permissão verificar com base no role
+    const userRole = req.user.role;
+    const permission = userRole === 'admin' ? 'update:password' : 'update:own:password';
+
+    // Encapsular e executar o middleware correto
+    return authorize(permission)(req, res, next);
+  },
   updatePassword                 // Execute controller function to update the password
 );
 
