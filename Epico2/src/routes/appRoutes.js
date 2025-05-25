@@ -7,7 +7,8 @@ const {
   createPassword,
   updatePassword,
   getPassword,
-  getApps
+  getApps,
+  importApps
 } = require('../controllers/appController');
 
 // Import middleware for authentication and authorization
@@ -69,6 +70,13 @@ router.get(
   authorize('read:apps'),        // Verify that the user has permission to read the list of apps
   getApps                        // Execute controller function to return the apps
 );
+
+router.post(
+  '/import/apps',
+  authenticateJWT,               // Check if user has a valid JWT token
+  authorize('import:apps'),      // Verify that the user has permission to import apps
+  importApps,                 // Execute controller function to import apps
+)
 
 
 // Export the router to be used in the main app (index.js / server.js)

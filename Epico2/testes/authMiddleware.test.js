@@ -2,8 +2,15 @@
 const jwt = require("jsonwebtoken");
 const { authenticateJWT, authorize } = require("../src/middlewares/auth");
 const rolesPermissions = require("../src/accessControl/roles");
+const dotenv = require('dotenv');
 
-const JWT_SECRET = process.env.JWT_SECRET || "testsecret";
+jest.mock('../src/services/logging', () => ({
+  logAccess: jest.fn()
+}));
+
+dotenv.config(); 
+
+const JWT_SECRET = process.env.JWT_SECRET;
 
 describe("Middleware de autenticação", () => {
   it("Deve bloquear requisição sem token", () => {
@@ -24,7 +31,7 @@ describe("Middleware de autenticação", () => {
     expect(next).not.toHaveBeenCalled();
   });
 
-  it("Deve permitir requisição com token válido", () => {
+  it("Deve permitir requisição com token válido", (done) => {
     // Testa: if (!err) e token válido → passa pelo next() [V]
     const token = jwt.sign({ appid: "123", role: "client" }, JWT_SECRET, {
       expiresIn: "1h",

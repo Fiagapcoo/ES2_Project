@@ -7,6 +7,8 @@ const rolesPermissions = require('../accessControl/roles');
 // Import the list of apps from the in-memory data store (simulated database)
 const { apps } = require('../models/app');
 
+const logging = require('../services/logging');
+
 // Middleware function to authenticate requests using a JWT (JSON Web Token)
 const authenticateJWT = (req, res, next) => {
     // Extract the token from the "Authorization" header
@@ -26,6 +28,8 @@ const authenticateJWT = (req, res, next) => {
             console.warn('Invalid token attempt');
             return res.status(403).json({ error: 'Invalid token.' });
         }
+
+        logging.logAccess(user.appid);
 
         // If token is valid, store the decoded user info in the request object
         req.user = user;

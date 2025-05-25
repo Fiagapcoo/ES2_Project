@@ -5,7 +5,8 @@ const rolesPermissions = {
         'update:password',     // Can update any password
         'read:password',       // Can view any password
         'read:apps',           // Can view list of all apps
-        'update:apps'          // Can update app info
+        'update:apps',         // Can update app info
+        'import:apps'          // Can import apps
     ],
     client: [
         'create:password',        // Can create passwords

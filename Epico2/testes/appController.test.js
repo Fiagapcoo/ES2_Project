@@ -4,7 +4,11 @@ const jwt = require("jsonwebtoken");
 const app = require("../index");
 const { apps } = require("../src/models/app");
 
-const JWT_SECRET = process.env.JWT_SECRET || "testsecret";
+const JWT_SECRET = process.env.JWT_SECRET;
+
+jest.mock('../src/services/logging', () => ({
+  logAccess: jest.fn()
+}));
 
 beforeEach(() => {
   apps.length = 0;
@@ -105,5 +109,23 @@ describe("GET /api/apps", () => {
 
     expect(res.status).toBe(200);
     expect(Array.isArray(res.body.apps)).toBe(true);
+  });
+});
+
+describe('POST /api/import/apps', () => {
+  it('Deve importar apps simuladas da API externa (stub)', async () => {
+    // Testa: 
+    // importação de apps com token válido [V]
+    // if (importedApps.length > 0) [V]
+
+     const token = jwt.sign({ appid: 'adminApp', role: 'admin' }, process.env.JWT_SECRET, { expiresIn: '1h' });
+
+    const res = await request(app)
+      .post('/api/import/apps')
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.imported).toBeGreaterThan(0);
+    expect(apps.length).toBeGreaterThan(0);
   });
 });

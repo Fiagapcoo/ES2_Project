@@ -1,6 +1,7 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { App, apps } = require('../models/app');
+const externalStub = require('../stubs/externalApps');
 
 // Lista de senhas (como exemplo, substitua por uma base de dados real)
 const passwords = [];
@@ -65,14 +66,13 @@ const createPassword = async (req, res) => {
     }
 
     // Prevent duplicate password creation
-    const existingPassword = apps.find(a => a.appid === appid);
-    if (existingPassword) {
+    if (appExists.password) {
       return res.status(409).json({ error: 'Password for this app already exists.' });
     }
 
     // Hash and store password
     const hashedPassword = await bcrypt.hash(password, 10);
-    apps.push(hashedPassword);
+    appExists.password = hashedPassword;
 
     res.status(201).json({ message: 'Password created successfully!' });
   } catch (error) {
@@ -146,10 +146,27 @@ const getApps = (req, res) => {
   res.status(200).json({ apps });
 };
 
+const importApps = (req, res) => {
+  try {
+    const importedApps = externalStub.fetchApps();
+
+    importedApps.forEach(newApp => {
+      if (!apps.find(app => app.appid === newApp.appid)) {
+        apps.push({ ...newApp, roles: ['client'], password: 'stubbed', secret: 'stubbed' });
+      }
+    });
+
+    return res.status(200).json({ message: 'Import completed', imported: importedApps.length });
+  } catch (err) {
+    return res.status(500).json({ error: 'Internal server error during apps importing.' });
+  }
+};
+
 module.exports = { 
   registerApp, 
   createPassword, 
   updatePassword, 
   getPassword, 
-  getApps 
+  getApps,
+  importApps
 };
